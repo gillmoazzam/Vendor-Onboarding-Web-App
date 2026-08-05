@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --color-folio-red: #E8272C;
+  --color-folio-navy: #1F3864;
+}
+
+@layer base {
+  * { @apply border-slate-200; }
+  body { @apply min-w-[320px] bg-slate-50 font-sans text-slate-600 antialiased; }
+  h1, h2, h3 { @apply text-[#1F3864]; }
+  button, a { @apply transition-colors duration-150; }
+}
