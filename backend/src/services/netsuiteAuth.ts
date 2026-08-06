@@ -20,7 +20,7 @@ function getRealm(accountId: string): string {
 
 export class NetSuiteAuthService {
   getAuthorizationHeader(method: string, requestUrl: string): string {
-    const accountId = requiredEnvironment('NS_ACCOUNT_ID').toLowerCase()
+    const accountId = requiredEnvironment('NS_ACCOUNT_ID').toUpperCase()
     const consumerKey = requiredEnvironment('NS_CONSUMER_KEY')
     const consumerSecret = requiredEnvironment('NS_CONSUMER_SECRET')
     const tokenId = requiredEnvironment('NS_TOKEN_ID')

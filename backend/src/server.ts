@@ -13,6 +13,7 @@ import { publicQuestionnaireRouter } from './routes/publicQuestionnaire.routes.j
 
 const app = express()
 const port = 3001
+const dataSource = process.env.DATA_SOURCE ?? 'memory'
 
 app.use(cors({ origin: 'http://localhost:5173' }))
 app.use(express.json())
@@ -25,4 +26,4 @@ app.use('/api/lists', listRouter)
 app.use('/api/dashboard', dashboardRouter)
 app.use('/api/requests', requestRouter)
 app.use('/api/questionnaires', questionnaireRouter)
-app.listen(port, () => console.log(`Server listening on port ${port}`))
+app.listen(port, () => console.log(`Server listening on port ${port} (data source: ${dataSource})`))
