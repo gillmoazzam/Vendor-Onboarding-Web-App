@@ -13,8 +13,12 @@ import { inboundEmailService } from './services/inboundEmailService.js'
 const app = express()
 const port = 3001
 const dataSource = process.env.DATA_SOURCE ?? 'memory'
+const allowedOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
-app.use(cors({ origin: 'http://localhost:5173' }))
+app.use(cors({ origin: allowedOrigins }))
 app.use(express.json())
 app.use('/api', healthRouter)
 app.use('/api/auth', authRouter)
@@ -23,7 +27,11 @@ app.use('/api', requireAuth)
 app.use('/api/lists', listRouter)
 app.use('/api/dashboard', dashboardRouter)
 app.use('/api/requests', requestRouter)
-app.listen(port, () => {
-  console.log(`Server listening on port ${port} (data source: ${dataSource})`)
-  inboundEmailService.start()
-})
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Server listening on port ${port} (data source: ${dataSource})`)
+    inboundEmailService.start()
+  })
+}
+
+export default app
