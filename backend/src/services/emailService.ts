@@ -26,10 +26,11 @@ function getConfiguration(): EmailConfiguration {
 
   const smtpPort = Number(values.smtpPort)
   if (!Number.isInteger(smtpPort) || smtpPort <= 0) throw new Error('SMTP_PORT must be a positive integer')
+  const deliveryPort = process.env.VERCEL && smtpPort === 465 ? 587 : smtpPort
 
   return {
     smtpHost: values.smtpHost!,
-    smtpPort,
+    smtpPort: deliveryPort,
     smtpUser: values.smtpUser!,
     smtpPass: values.smtpPass!,
     mailFrom: values.mailFrom!,

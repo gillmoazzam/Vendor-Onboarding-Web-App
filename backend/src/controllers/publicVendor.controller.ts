@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express'
+import { waitUntil } from '@vercel/functions'
 import { emailService } from '../services/emailService.js'
 import { captchaService } from '../services/captchaService.js'
 import { requestService, type CreatePublicVendorRequestInput } from '../services/requestService.js'
@@ -53,12 +54,15 @@ export async function createPublicVendorRequest(request: Request, response: Resp
     const uploadedFiles = Array.isArray(request.files) ? request.files : []
     const attachments = uploadedFiles.map((file) => ({ fileName: file.originalname, mimeType: file.mimetype, content: file.buffer }))
     const createdRequest = await requestService.createPublic(input, attachments)
-    void emailService.sendAcknowledgement(createdRequest).catch((error: unknown) => {
+    const acknowledgementEmail = emailService.sendAcknowledgement(createdRequest).catch((error: unknown) => {
       console.error('Failed to send public vendor acknowledgement email:', error)
     })
-    void emailService.sendApprovalRequest(createdRequest).catch((error: unknown) => {
+    const approvalEmail = emailService.sendApprovalRequest(createdRequest).catch((error: unknown) => {
       console.error('Failed to send public vendor approval request email:', error)
     })
+    const emailDelivery = Promise.all([acknowledgementEmail, approvalEmail]).then(() => undefined)
+    if (process.env.VERCEL) waitUntil(emailDelivery)
+    else void emailDelivery
     response.status(200).json({ success: true, id: createdRequest.id, attachmentCount: attachments.length, message: 'Vendor registration submitted successfully' })
   } catch (error) {
     if (error instanceof Error && (error.message === 'Invalid reason' || error.message === 'Please explain the reason')) {
