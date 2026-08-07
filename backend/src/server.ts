@@ -13,7 +13,11 @@ import { inboundEmailService } from './services/inboundEmailService.js'
 const app = express()
 const port = 3001
 const dataSource = process.env.DATA_SOURCE ?? 'memory'
-const allowedOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+const defaultOrigins = [
+  'http://localhost:5173',
+  ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
+]
+const allowedOrigins = (process.env.CORS_ORIGIN ?? defaultOrigins.join(','))
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean)
