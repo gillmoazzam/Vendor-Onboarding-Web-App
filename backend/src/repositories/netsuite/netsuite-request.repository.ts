@@ -7,7 +7,7 @@ import {
   toNetSuiteStatusId,
 } from '../../config/netsuiteLists.js'
 import { netsuiteClient } from '../../services/netsuiteClient.js'
-import type { QuestionnaireStatus, VendorRequest, VendorRequestStatus } from '../../types/domain.js'
+import type { VendorRequest } from '../../types/domain.js'
 import type { IRequestRepository, NewVendorRequest, VendorRequestPatch } from '../interfaces.js'
 import { createNetSuiteRecord } from './netsuite-record.client.js'
 
@@ -26,13 +26,9 @@ const fields = {
   status: 'custrecord_f3_status1',
   approverComments: 'custrecord_f3_approver_comments',
   approvalDate: 'custrecord_f3_approval_date',
-  approvalToken: 'custrecord_f3_approval_token',
   createdVendorId: 'custrecord_f3_created_vendor',
   questionnaireStatus: 'custrecord_f3_qn_status',
-  questionnaireToken: 'custrecord_f3_qn_token',
-  questionnaireSentDate: 'custrecord_f3_qn_sent_date',
   questionnaireSubmittedDate: 'custrecord_f3_qn_submitted_date',
-  questionnaireApprovedBy: 'custrecord_f3_qn_approved_by',
   vendorComments: 'custrecord_f3_vendorcomments',
   q1: 'custrecord_f3_q1',
   q2: 'custrecord_f3_q2',
@@ -59,13 +55,9 @@ const selectRequest = `
     ${fields.status} AS "statusId",
     ${fields.approverComments} AS "approverComments",
     ${fields.approvalDate} AS "approvalDate",
-    ${fields.approvalToken} AS "approvalToken",
     ${fields.createdVendorId} AS "createdVendorId",
     ${fields.questionnaireStatus} AS "questionnaireStatusId",
-    ${fields.questionnaireToken} AS "questionnaireToken",
-    ${fields.questionnaireSentDate} AS "questionnaireSentDate",
     ${fields.questionnaireSubmittedDate} AS "questionnaireSubmittedDate",
-    ${fields.questionnaireApprovedBy} AS "questionnaireApprovedBy",
     ${fields.vendorComments} AS "vendorComments",
     ${fields.q1} AS "q1",
     ${fields.q2} AS "q2",
@@ -116,13 +108,9 @@ function mapRequest(row: Record<string, unknown>): VendorRequest {
     status: fromNetSuiteStatusId(text(rowValue(row, 'statusId'))),
     approverComments: text(rowValue(row, 'approverComments')),
     approvalDate: nullableText(rowValue(row, 'approvalDate')),
-    approvalToken: nullableText(rowValue(row, 'approvalToken')),
     createdVendorId: nullableText(rowValue(row, 'createdVendorId')),
     questionnaireStatus: fromNetSuiteQuestionnaireStatusId(text(rowValue(row, 'questionnaireStatusId'))),
-    questionnaireToken: nullableText(rowValue(row, 'questionnaireToken')),
-    questionnaireSentDate: nullableText(rowValue(row, 'questionnaireSentDate')),
     questionnaireSubmittedDate: nullableText(rowValue(row, 'questionnaireSubmittedDate')),
-    questionnaireApprovedBy: nullableText(rowValue(row, 'questionnaireApprovedBy')),
     vendorComments: text(rowValue(row, 'vendorComments')),
     answers: {
       q1: text(rowValue(row, 'q1')),
@@ -148,13 +136,9 @@ function toNetSuiteRequest(data: NewVendorRequest): Record<string, unknown> {
     [fields.status]: { id: toNetSuiteStatusId(data.status) },
     [fields.approverComments]: data.approverComments,
     [fields.approvalDate]: toDate(data.approvalDate),
-    [fields.approvalToken]: data.approvalToken,
     [fields.createdVendorId]: data.createdVendorId ? { id: data.createdVendorId } : null,
     [fields.questionnaireStatus]: { id: toNetSuiteQuestionnaireStatusId(data.questionnaireStatus) },
-    [fields.questionnaireToken]: data.questionnaireToken,
-    [fields.questionnaireSentDate]: toDate(data.questionnaireSentDate),
     [fields.questionnaireSubmittedDate]: data.questionnaireSubmittedDate,
-    [fields.questionnaireApprovedBy]: data.questionnaireApprovedBy ? { id: data.questionnaireApprovedBy } : null,
     [fields.vendorComments]: data.vendorComments,
     [fields.q1]: data.answers.q1,
     [fields.q2]: data.answers.q2,
@@ -172,8 +156,7 @@ function toNetSuitePatch(patch: VendorRequestPatch): Record<string, unknown> {
   const simpleFields: Array<[keyof VendorRequestPatch, string]> = [
     ['vendorName', fields.vendorName], ['vendorAddress', fields.vendorAddress], ['contactPerson', fields.contactPerson],
     ['contactEmail', fields.contactEmail], ['reasonOther', fields.reasonOther], ['requesterEmail', fields.requesterEmail],
-    ['approverComments', fields.approverComments], ['approvalToken', fields.approvalToken], ['questionnaireToken', fields.questionnaireToken],
-    ['vendorComments', fields.vendorComments],
+    ['approverComments', fields.approverComments], ['vendorComments', fields.vendorComments],
   ]
 
   for (const [domainField, netSuiteField] of simpleFields) {
@@ -185,10 +168,8 @@ function toNetSuitePatch(patch: VendorRequestPatch): Record<string, unknown> {
   if ('status' in patch && patch.status !== undefined) body[fields.status] = { id: toNetSuiteStatusId(patch.status) }
   if ('questionnaireStatus' in patch && patch.questionnaireStatus !== undefined) body[fields.questionnaireStatus] = { id: toNetSuiteQuestionnaireStatusId(patch.questionnaireStatus) }
   if ('createdVendorId' in patch) body[fields.createdVendorId] = patch.createdVendorId ? { id: patch.createdVendorId } : null
-  if ('questionnaireApprovedBy' in patch) body[fields.questionnaireApprovedBy] = patch.questionnaireApprovedBy ? { id: patch.questionnaireApprovedBy } : null
   if ('requestDate' in patch) body[fields.requestDate] = toDate(patch.requestDate ?? null)
   if ('approvalDate' in patch) body[fields.approvalDate] = patch.approvalDate ?? null
-  if ('questionnaireSentDate' in patch) body[fields.questionnaireSentDate] = toDate(patch.questionnaireSentDate ?? null)
   if ('questionnaireSubmittedDate' in patch) body[fields.questionnaireSubmittedDate] = toDate(patch.questionnaireSubmittedDate ?? null)
   if (patch.answers) {
     body[fields.q1] = patch.answers.q1
@@ -226,24 +207,6 @@ export class NetSuiteRequestRepository implements IRequestRepository {
 
     await netsuiteClient.patch(`/record/v1/${recordType}/${encodeURIComponent(id)}`, body)
     return this.findById(id)
-  }
-
-  async findByRequester(requesterId: string): Promise<VendorRequest[]> {
-    return this.find(`${fields.requester} = '${escapeSuiteQlLiteral(requesterId)}'`, `${fields.requestDate} DESC`)
-  }
-
-  async findByStatus(status: VendorRequestStatus): Promise<VendorRequest[]> {
-    return this.find(`${fields.status} = '${escapeSuiteQlLiteral(toNetSuiteStatusId(status))}'`)
-  }
-
-  async findPendingQuestionnaires(): Promise<VendorRequest[]> {
-    return this.find(
-      `${fields.status} = '${escapeSuiteQlLiteral(toNetSuiteStatusId('Processed'))}' AND ${fields.questionnaireStatus} = '${escapeSuiteQlLiteral(toNetSuiteQuestionnaireStatusId('Not Started'))}'`,
-    )
-  }
-
-  async findSubmittedQuestionnaires(): Promise<VendorRequest[]> {
-    return this.find(`${fields.questionnaireStatus} = '${escapeSuiteQlLiteral(toNetSuiteQuestionnaireStatusId('Submitted'))}'`)
   }
 
   private async find(where: string, orderBy = 'id DESC'): Promise<VendorRequest[]> {

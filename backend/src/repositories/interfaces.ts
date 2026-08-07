@@ -1,4 +1,4 @@
-import type { AppUser, Reason, Vendor, VendorRequest, VendorRequestStatus } from '../types/domain.js'
+import type { AppUser, Reason, Vendor, VendorRequest } from '../types/domain.js'
 
 export type NewVendorRequest = Omit<VendorRequest, 'id'>
 export type VendorRequestPatch = Partial<Omit<VendorRequest, 'id'>>
@@ -13,10 +13,6 @@ export interface IRequestRepository {
   findAll(): Promise<VendorRequest[]>
   findById(id: string): Promise<VendorRequest | null>
   update(id: string, patch: VendorRequestPatch): Promise<VendorRequest | null>
-  findByRequester(requesterId: string): Promise<VendorRequest[]>
-  findByStatus(status: VendorRequestStatus): Promise<VendorRequest[]>
-  findPendingQuestionnaires(): Promise<VendorRequest[]>
-  findSubmittedQuestionnaires(): Promise<VendorRequest[]>
 }
 
 export interface IUserRepository {
