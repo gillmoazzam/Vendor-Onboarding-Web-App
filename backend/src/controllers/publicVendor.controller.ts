@@ -18,7 +18,7 @@ function isComplete(input: unknown): input is CreatePublicVendorRequestInput {
   const hasFields = requiredFields.every((field) => typeof candidate[field] === 'string' && candidate[field].trim().length > 0)
   const hasAnswers = candidate.answers && ['q1', 'q2', 'q3', 'q4', 'q5'].every((key) => {
     const answer = candidate.answers?.[key as keyof typeof candidate.answers]
-    return typeof answer === 'string' && answer.trim().length > 0
+    return typeof answer === 'string'
   })
 
   return Boolean(hasFields && hasAnswers && typeof candidate.contactEmail === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidate.contactEmail))
@@ -39,7 +39,7 @@ function parseInput(body: unknown): unknown {
 export async function createPublicVendorRequest(request: Request, response: Response): Promise<void> {
   const input = parseInput(request.body)
   if (!isComplete(input)) {
-    response.status(400).json({ success: false, message: 'Complete all required registration fields and questionnaire answers' })
+    response.status(400).json({ success: false, message: 'Complete all required registration fields' })
     return
   }
 

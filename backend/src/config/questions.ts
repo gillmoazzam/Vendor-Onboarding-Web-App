@@ -1,9 +1,9 @@
 import type { QuestionnaireAnswers } from '../types/domain.js'
 
 export const questions: ReadonlyArray<{ id: string; key: keyof QuestionnaireAnswers; label: string }> = [
-  { id: 'Q1', key: 'q1', label: 'What quality control processes and KPIs do you follow (e.g. defect rate, on-time delivery, SLA adherence)? Please share recent performance data if available.' },
-  { id: 'Q2', key: 'q2', label: 'What contingency plans do you have in place for supply chain disruptions, resource shortages, or system failures?' },
-  { id: 'Q3', key: 'q3', label: 'Which industry standards, certifications, or regulatory requirements do you comply with (e.g. ISO, local tax/legal requirements), and how do you ensure ongoing compliance?' },
-  { id: 'Q4', key: 'q4', label: 'What systems do you currently use for order processing, invoicing, and reporting?' },
-  { id: 'Q5', key: 'q5', label: 'Can you describe your current production/service capacity and how you handle sudden increases in demand? Please include any constraints or lead-time impacts.' },
+  { id: 'Q1', key: 'q1', label: 'What products or services do you provide, and what are your core areas of expertise?' },
+  { id: 'Q2', key: 'q2', label: 'What certifications, licenses, registrations, or regulatory approvals do you hold that are relevant to your business?' },
+  { id: 'Q3', key: 'q3', label: 'Describe your quality assurance process and how you handle customer complaints, defects, or service issues.' },
+  { id: 'Q4', key: 'q4', label: 'Are there any operational, financial, legal, or supply chain risks that could impact your ability to deliver products or services consistently? If yes, please explain.' },
+  { id: 'Q5', key: 'q5', label: 'Please provide at least two recent client references or examples of similar projects, products, or services delivered.' },
 ]

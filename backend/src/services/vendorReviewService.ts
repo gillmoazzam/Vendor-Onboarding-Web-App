@@ -10,7 +10,7 @@ export class VendorReviewError extends Error {
 }
 
 export class VendorReviewService {
-  async decide(id: string, action: ReviewAction): Promise<{ status: 'Processed' | 'Rejected'; vendorId?: string }> {
+  async decide(id: string, action: ReviewAction, comments = ''): Promise<{ status: 'Processed' | 'Rejected'; vendorId?: string }> {
     const request = await repositories.requests.findById(id)
     if (!request) throw new VendorReviewError('Vendor request not found', 404)
     if (request.status !== 'Pending Approval') throw new VendorReviewError(`This request has already been ${request.status}`, 409)
@@ -31,13 +31,16 @@ export class VendorReviewService {
       return { status: 'Processed', vendorId: vendor.id }
     }
 
-    const updated = await repositories.requests.update(id, { status: 'Rejected', approvalDate: new Date().toISOString() })
+    const rejectionComments = comments.trim()
+    if (!rejectionComments) throw new VendorReviewError('Rejection comments are required', 400)
+
+    const updated = await repositories.requests.update(id, { status: 'Rejected', approvalDate: new Date().toISOString(), approverComments: rejectionComments })
     if (!updated) throw new VendorReviewError('Vendor request not found', 404)
     try {
       await emailService.sendRejectionOutcome(updated)
     } catch (error) {
       try {
-        await repositories.requests.update(id, { status: 'Pending Approval', approvalDate: null })
+        await repositories.requests.update(id, { status: 'Pending Approval', approvalDate: null, approverComments: request.approverComments })
       } catch (rollbackError) {
         console.error(`Failed to restore Vendor Request #${id} after rejection email failed:`, rollbackError)
       }

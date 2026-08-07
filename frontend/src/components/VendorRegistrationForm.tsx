@@ -50,8 +50,8 @@ export function VendorRegistrationForm({ mode, requesterName }: VendorRegistrati
   const [isCaptchaVerifying, setIsCaptchaVerifying] = useState(false)
   const otherReasonId = reasons.find((reason) => reason.label.trim() === 'Other')?.id
   const schema = useMemo(() => z.object({
-    vendorName: z.string().trim().min(1, 'Vendor legal name is required'),
-    vendorAddress: z.string().trim().min(1, 'Vendor legal address is required'),
+    vendorName: z.string().trim().min(1, 'Company name is required'),
+    vendorAddress: z.string().trim().min(1, 'Company address is required'),
     contactPerson: z.string().trim().min(1, 'Contact person is required'),
     contactEmail: z.string().trim().min(1, 'Contact email is required').email('Enter a valid email address'),
     reasonId: z.string().min(1, 'Select a reason for consideration'),
@@ -61,14 +61,7 @@ export function VendorRegistrationForm({ mode, requesterName }: VendorRegistrati
     if (values.reasonId === otherReasonId && !values.reasonOther.trim()) {
       context.addIssue({ code: 'custom', path: ['reasonOther'], message: 'Please explain the reason' })
     }
-    if (isPublic) {
-      for (const question of questions) {
-        if (!values.answers[question.key].trim()) {
-          context.addIssue({ code: 'custom', path: ['answers', question.key], message: 'This answer is required' })
-        }
-      }
-    }
-  }), [isPublic, otherReasonId])
+  }), [otherReasonId])
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -229,11 +222,11 @@ export function VendorRegistrationForm({ mode, requesterName }: VendorRegistrati
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
           {!isPublic && <p className="rounded-xl bg-slate-100 px-4 py-3 text-sm">Requester: <span className="font-semibold text-[#1F3864]">{requesterName}</span></p>}
           <div className="grid gap-5 sm:grid-cols-2">
-            <label className="block text-sm font-semibold text-[#1F3864] sm:col-span-2">Vendor Legal Name <span className="text-[#E8272C]" aria-hidden="true">*</span>
+            <label className="block text-sm font-semibold text-[#1F3864] sm:col-span-2">Company Name <span className="text-[#E8272C]" aria-hidden="true">*</span>
               <input {...register('vendorName')} required className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#E8272C] focus:ring-4 focus:ring-red-50" />
               {errors.vendorName && <span className="mt-1 block text-sm text-[#E8272C]">{errors.vendorName.message}</span>}
             </label>
-            <label className="block text-sm font-semibold text-[#1F3864] sm:col-span-2">Vendor Legal Address <span className="text-[#E8272C]" aria-hidden="true">*</span>
+            <label className="block text-sm font-semibold text-[#1F3864] sm:col-span-2">Company Address <span className="text-[#E8272C]" aria-hidden="true">*</span>
               <textarea {...register('vendorAddress')} required rows={3} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#E8272C] focus:ring-4 focus:ring-red-50" />
               {errors.vendorAddress && <span className="mt-1 block text-sm text-[#E8272C]">{errors.vendorAddress.message}</span>}
             </label>
@@ -260,7 +253,7 @@ export function VendorRegistrationForm({ mode, requesterName }: VendorRegistrati
 
           {isPublic && <section className="border-t border-slate-200 pt-7"><h3 className="text-xl font-bold">Supporting documents <span className="text-sm font-medium text-slate-500">(Optional)</span></h3><p className="mt-2 text-sm text-slate-500">Attach up to 10 PDF, Word, or Excel documents. Each file can be up to 10 MB.</p><label className="mt-5 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center hover:border-[#E8272C] hover:bg-red-50/40"><Paperclip className="size-8 text-[#E8272C]" /><span className="mt-3 font-bold text-[#1F3864]">Choose documents</span><span className="mt-1 text-sm text-slate-500">PDF, DOC, DOCX, XLS, XLSX</span><input type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx" onChange={selectDocuments} className="sr-only" /></label>{attachmentError && <p className="mt-2 text-sm font-medium text-[#E8272C]">{attachmentError}</p>}{documents.length > 0 && <ul className="mt-4 space-y-2">{documents.map((document, index) => <li key={`${document.name}-${document.lastModified}`} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"><FileText className="size-5 shrink-0 text-[#1F3864]" /><span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700">{document.name}</span><span className="text-xs text-slate-400">{(document.size / 1024 / 1024).toFixed(1)} MB</span><button type="button" onClick={() => removeDocument(index)} aria-label={`Remove ${document.name}`} className="rounded-md p-1 text-slate-400 hover:bg-red-50 hover:text-[#E8272C]"><X className="size-4" /></button></li>)}</ul>}</section>}
 
-          {isPublic && <section className="border-t border-slate-200 pt-7"><h3 className="text-xl font-bold">Vendor due-diligence questionnaire</h3><p className="mt-2 text-sm text-slate-500">Please provide complete answers so our team can evaluate your organization.</p><div className="mt-6 space-y-6">{questions.map((question) => <label key={question.id} className="block text-sm font-semibold leading-6 text-[#1F3864]"><span className="mr-2 inline-grid size-7 place-items-center rounded-full bg-red-50 text-xs text-[#E8272C]">{question.id}</span>{question.label} <span className="text-[#E8272C]" aria-hidden="true">*</span><textarea {...register(`answers.${question.key}`)} required rows={4} className="mt-3 w-full rounded-xl border border-slate-300 px-4 py-3 font-normal text-slate-700 outline-none focus:border-[#E8272C] focus:ring-4 focus:ring-red-50" />{errors.answers?.[question.key] && <span className="mt-1 block text-sm font-normal text-[#E8272C]">{errors.answers[question.key]?.message}</span>}</label>)}</div></section>}
+          {isPublic && <section className="border-t border-slate-200 pt-7"><h3 className="text-xl font-bold">Vendor due-diligence questionnaire <span className="text-sm font-medium text-slate-500">(Optional)</span></h3><p className="mt-2 text-sm text-slate-500">Provide any relevant information that may help our team evaluate your organization.</p><div className="mt-6 space-y-6">{questions.map((question) => <label key={question.id} className="block text-sm font-semibold leading-6 text-[#1F3864]"><span className="mr-2 inline-grid size-7 place-items-center rounded-full bg-red-50 text-xs text-[#E8272C]">{question.id}</span>{question.label}<textarea {...register(`answers.${question.key}`)} rows={4} className="mt-3 w-full rounded-xl border border-slate-300 px-4 py-3 font-normal text-slate-700 outline-none focus:border-[#E8272C] focus:ring-4 focus:ring-red-50" />{errors.answers?.[question.key] && <span className="mt-1 block text-sm font-normal text-[#E8272C]">{errors.answers[question.key]?.message}</span>}</label>)}</div></section>}
 
           {isPublic && <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#1F3864]">Security check</p>

@@ -21,7 +21,8 @@ export async function submitInternalDecision(request: Request, response: Respons
     return
   }
   try {
-    const result = await vendorReviewService.decide(requestId(request), action)
+    const comments = typeof request.body?.comments === 'string' ? request.body.comments : ''
+    const result = await vendorReviewService.decide(requestId(request), action, comments)
     response.json({ success: true, ...result })
   } catch (error) {
     handleReviewError(error, response)
