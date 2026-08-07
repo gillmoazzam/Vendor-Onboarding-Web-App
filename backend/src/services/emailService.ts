@@ -146,22 +146,6 @@ export class EmailService {
     await transporter.sendMail({ from: configuration.mailFrom, to: configuration.approverEmail, subject: `Additional Vendor Information Received - Request #${request.id}`, html })
   }
 
-  async sendDecisionOutcome(request: VendorRequest): Promise<void> {
-    const configuration = getConfiguration()
-    const transporter = nodemailer.createTransport({
-      host: configuration.smtpHost,
-      port: configuration.smtpPort,
-      secure: configuration.smtpPort === 465,
-      auth: { user: configuration.smtpUser, pass: configuration.smtpPass },
-    })
-    const html = emailLayout(
-      `Vendor Request ${request.status}`,
-      `<p style="margin:0 0 16px;font-size:16px;line-height:1.5;">Your request for <strong>${escapeHtml(request.vendorName)}</strong> was <strong>${escapeHtml(request.status)}</strong>.</p><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;"><tr><td style="padding:10px;border:1px solid #e5e7eb;background:#f9fafb;font-weight:bold;">Approver Comment</td><td style="padding:10px;border:1px solid #e5e7eb;">${escapeHtml(request.approverComments)}</td></tr></table>`,
-    )
-
-    await transporter.sendMail({ from: configuration.mailFrom, to: request.requesterEmail, subject: `Vendor Request ${request.status} - ${request.vendorName}`, html })
-  }
-
   async sendRejectionOutcome(request: VendorRequest): Promise<void> {
     const configuration = getConfiguration()
     const transporter = nodemailer.createTransport({
@@ -178,22 +162,6 @@ export class EmailService {
     await transporter.sendMail({ from: configuration.mailFrom, to: request.requesterEmail, subject: `Vendor Registration Update - ${request.vendorName}`, html })
   }
 
-  async sendQuestionnaire(request: VendorRequest): Promise<void> {
-    const configuration = getConfiguration()
-    const transporter = nodemailer.createTransport({
-      host: configuration.smtpHost,
-      port: configuration.smtpPort,
-      secure: configuration.smtpPort === 465,
-      auth: { user: configuration.smtpUser, pass: configuration.smtpPass },
-    })
-    const questionnaireUrl = `${configuration.appBaseUrl}/questionnaire/${encodeURIComponent(request.id)}?token=${encodeURIComponent(request.questionnaireToken ?? '')}`
-    const html = emailLayout(
-      'Action Required: Vendor Questionnaire',
-      `<p style="margin:0 0 20px;font-size:16px;line-height:1.5;">Please complete the vendor questionnaire for <strong>${escapeHtml(request.vendorName)}</strong>.</p><table role="presentation" cellspacing="0" cellpadding="0"><tr><td style="background:#E8272C;"><a href="${questionnaireUrl}" style="display:inline-block;padding:16px 28px;color:#ffffff;text-decoration:none;font-size:16px;font-weight:bold;">COMPLETE QUESTIONNAIRE</a></td></tr></table>`,
-    )
-
-    await transporter.sendMail({ from: configuration.mailFrom, to: request.contactEmail, subject: `Action Required - Vendor Questionnaire - ${request.vendorName}`, html })
-  }
 }
 
 export const emailService = new EmailService()

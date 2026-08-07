@@ -4,12 +4,7 @@ import { NavBar } from './components/NavBar'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AuthProvider } from './contexts/AuthContext'
 import { LoginPage } from './pages/LoginPage'
-import { RegisterVendorPage } from './pages/RegisterVendorPage'
 import { RequestsPage } from './pages/RequestsPage'
-import { ApprovalPage } from './pages/ApprovalPage'
-import { SendQuestionnairesPage } from './pages/SendQuestionnairesPage'
-import { QuestionnairePage } from './pages/QuestionnairePage'
-import { ReviewQuestionnairesPage } from './pages/ReviewQuestionnairesPage'
 import { Toaster } from 'sonner'
 import { DashboardPage } from './pages/DashboardPage'
 import { PublicVendorPage } from './pages/PublicVendorPage'
@@ -30,14 +25,9 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/vendor" element={<PublicVendorPage />} />
-          <Route path="/approve/:id" element={<ApprovalPage />} />
-          <Route path="/questionnaire/:id" element={<QuestionnairePage />} />
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/register" element={<ProtectedRoute><InternalShell><RegisterVendorPage /></InternalShell></ProtectedRoute>} />
           <Route path="/requests" element={<ProtectedRoute><InternalShell><RequestsPage /></InternalShell></ProtectedRoute>} />
           <Route path="/requests/:id" element={<ProtectedRoute><InternalShell><RequestDetailsPage /></InternalShell></ProtectedRoute>} />
-          <Route path="/questionnaires/send" element={<ProtectedRoute><InternalShell><SendQuestionnairesPage /></InternalShell></ProtectedRoute>} />
-          <Route path="/questionnaires/review" element={<ProtectedRoute><InternalShell><ReviewQuestionnairesPage /></InternalShell></ProtectedRoute>} />
         </Routes>
         <Toaster richColors />
       </BrowserRouter>

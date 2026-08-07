@@ -1,6 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
 import { ClipboardList, Eye } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { ApiErrorCard } from '../components/ApiErrorCard'
@@ -37,23 +35,9 @@ function RequestsSkeleton() {
 }
 
 export function RequestsPage() {
-  const queryClient = useQueryClient()
-  const [goLiveRequest, setGoLiveRequest] = useState<VendorRequest | null>(null)
   const { data: requests = [], isLoading, isError } = useQuery({
     queryKey: ['requests'],
     queryFn: async () => (await api.get<VendorRequest[]>('/requests')).data,
-  })
-  const goLiveMutation = useMutation({
-    mutationFn: async (requestId: string) => (await api.post<{ success: boolean; vendorId: string; vendorName: string }>(`/requests/${requestId}/golive`)).data,
-    onSuccess: (data) => {
-      toast.success(`${data.vendorName} is live (Vendor ID: ${data.vendorId})`)
-      setGoLiveRequest(null)
-      void queryClient.invalidateQueries({ queryKey: ['requests'] })
-    },
-    onError: (error) => {
-      const message = error instanceof Error ? error.message : 'Unable to take this vendor live'
-      toast.error(message)
-    },
   })
 
   return (
@@ -76,7 +60,6 @@ export function RequestsPage() {
                   <TableCell><Badge className={badgeClasses[request.status]}>{request.status}</Badge></TableCell>
                   <TableCell><div className="flex flex-wrap items-center gap-2">
                     <Link to={`/requests/${request.id}`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-[#1F3864] hover:border-[#1F3864] hover:bg-slate-50"><Eye className="size-3.5" />View</Link>
-                    {request.status === 'Approved' && <button type="button" onClick={() => setGoLiveRequest(request)} className="rounded bg-[#E8272C] px-3 py-1.5 text-xs font-semibold text-white">Vendor Go Live</button>}
                     {request.status === 'Processed' && <span className="text-sm text-slate-600">Vendor ID: {request.createdVendorId}</span>}
                   </div></TableCell>
                 </TableRow>)}
@@ -85,12 +68,6 @@ export function RequestsPage() {
           )}
         </CardContent>
       </Card>
-      {goLiveRequest && <div role="dialog" aria-modal="true" aria-labelledby="go-live-title" className="fixed inset-0 grid place-items-center bg-black/40 p-6">
-        <Card className="w-full max-w-md">
-          <CardHeader><CardTitle id="go-live-title">Confirm Vendor Go Live</CardTitle></CardHeader>
-          <CardContent className="space-y-5"><p>Take <strong>{goLiveRequest.vendorName}</strong> live as a vendor?</p><div className="flex justify-end gap-3"><button type="button" onClick={() => setGoLiveRequest(null)} className="rounded border border-slate-300 px-4 py-2 font-semibold">Cancel</button><button type="button" onClick={() => goLiveMutation.mutate(goLiveRequest.id)} disabled={goLiveMutation.isPending} className="rounded bg-[#E8272C] px-4 py-2 font-semibold text-white disabled:opacity-60">{goLiveMutation.isPending ? 'Taking Live…' : 'Confirm Go Live'}</button></div></CardContent>
-        </Card>
-      </div>}
     </main>
   )
 }

@@ -1,5 +1,5 @@
 import type { IRequestRepository, NewVendorRequest, VendorRequestPatch } from '../interfaces.js'
-import type { VendorRequest, VendorRequestStatus } from '../../types/domain.js'
+import type { VendorRequest } from '../../types/domain.js'
 
 export class MemoryRequestRepository implements IRequestRepository {
   private readonly requests = new Map<string, VendorRequest>()
@@ -37,24 +37,6 @@ export class MemoryRequestRepository implements IRequestRepository {
     const updated = { ...request, ...patch, id }
     this.requests.set(id, updated)
     return updated
-  }
-
-  async findByRequester(requesterId: string): Promise<VendorRequest[]> {
-    return this.filter((request) => request.requesterId === requesterId)
-  }
-
-  async findByStatus(status: VendorRequestStatus): Promise<VendorRequest[]> {
-    return this.filter((request) => request.status === status)
-  }
-
-  async findPendingQuestionnaires(): Promise<VendorRequest[]> {
-    return this.filter(
-      (request) => request.status === 'Processed' && request.questionnaireStatus === 'Not Started',
-    )
-  }
-
-  async findSubmittedQuestionnaires(): Promise<VendorRequest[]> {
-    return this.filter((request) => request.questionnaireStatus === 'Submitted')
   }
 
   private filter(predicate: (request: VendorRequest) => boolean): VendorRequest[] {

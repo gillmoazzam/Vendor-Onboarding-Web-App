@@ -34,13 +34,9 @@ export type VendorRequest = {
   status: VendorRequestStatus
   approverComments: string
   approvalDate: string | null
-  approvalToken: string | null
   createdVendorId: string | null
   questionnaireStatus: QuestionnaireStatus
-  questionnaireToken: string | null
-  questionnaireSentDate: string | null
   questionnaireSubmittedDate: string | null
-  questionnaireApprovedBy: string | null
   vendorComments: string
   answers: QuestionnaireAnswers
 }

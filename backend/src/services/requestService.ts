@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto'
 import { repositories } from '../repositories/index.js'
 import type { NewAttachment } from '../repositories/interfaces.js'
 import type { QuestionnaireAnswers, VendorRequest } from '../types/domain.js'
@@ -17,39 +16,6 @@ export type CreatePublicVendorRequestInput = CreateVendorRequestInput & {
 }
 
 export class RequestService {
-  async create(input: CreateVendorRequestInput, requester: NonNullable<Express.Request['user']>): Promise<VendorRequest> {
-    const reasons = await repositories.lookups.getReasons()
-    const reason = reasons.find((item) => item.id === input.reasonId)
-
-    if (!reason) throw new Error('Invalid reason')
-
-    return repositories.requests.create({
-      vendorName: input.vendorName,
-      vendorAddress: input.vendorAddress,
-      contactPerson: input.contactPerson,
-      contactEmail: input.contactEmail,
-      reasonId: reason.id,
-      reasonLabel: reason.label,
-      reasonOther: input.reasonOther,
-      requesterId: requester.userId,
-      requesterName: requester.name,
-      requesterEmail: requester.email,
-      requestDate: new Date().toISOString(),
-      status: 'Pending Approval',
-      approverComments: '',
-      approvalDate: null,
-      approvalToken: randomBytes(16).toString('hex'),
-      createdVendorId: null,
-      questionnaireStatus: 'Not Started',
-      questionnaireToken: null,
-      questionnaireSentDate: null,
-      questionnaireSubmittedDate: null,
-      questionnaireApprovedBy: null,
-      vendorComments: '',
-      answers: { q1: '', q2: '', q3: '', q4: '', q5: '' },
-    })
-  }
-
   async createPublic(input: CreatePublicVendorRequestInput, attachments: NewAttachment[] = []): Promise<VendorRequest> {
     const reasons = await repositories.lookups.getReasons()
     const reason = reasons.find((item) => item.id === input.reasonId)
@@ -73,13 +39,9 @@ export class RequestService {
       status: 'Pending Approval',
       approverComments: '',
       approvalDate: null,
-      approvalToken: randomBytes(16).toString('hex'),
       createdVendorId: null,
       questionnaireStatus: 'Submitted',
-      questionnaireToken: null,
-      questionnaireSentDate: null,
       questionnaireSubmittedDate: submittedAt,
-      questionnaireApprovedBy: null,
       vendorComments: '',
       answers: input.answers,
     })
