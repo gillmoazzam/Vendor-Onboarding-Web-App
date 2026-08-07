@@ -11,3 +11,38 @@
   h1, h2, h3 { @apply text-[#1F3864]; }
   button, a { @apply transition-colors duration-150; }
 }
+
+@keyframes vendor-float {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(24px, -28px, 0) scale(1.08); }
+}
+
+.vendor-orb {
+  position: absolute;
+  z-index: -5;
+  border-radius: 9999px;
+  filter: blur(4px);
+  opacity: 0.22;
+  animation: vendor-float 11s ease-in-out infinite;
+}
+
+.vendor-orb-one {
+  top: 16%;
+  right: 8%;
+  width: 18rem;
+  height: 18rem;
+  background: #E8272C;
+}
+
+.vendor-orb-two {
+  bottom: 8%;
+  left: 38%;
+  width: 12rem;
+  height: 12rem;
+  background: #60a5fa;
+  animation-delay: -5s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vendor-orb { animation: none; }
+}

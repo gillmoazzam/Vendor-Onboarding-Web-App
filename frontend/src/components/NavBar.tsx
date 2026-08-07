@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 export function NavBar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const canReviewQuestionnaires = user?.role === 'Finance Manager' || user?.role === 'Administrator'
+  const canReviewVendors = user?.role === 'Finance Manager' || user?.role === 'Administrator'
 
   function handleLogout() {
     logout()
@@ -13,19 +13,24 @@ export function NavBar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-red-700 bg-[#E8272C] px-6 py-4 text-white shadow-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6">
-        <Link to="/" className="flex items-center gap-3"><span className="flex h-9 w-16 items-center justify-center rounded-lg bg-white px-1 shadow-sm"><img src={folio3Logo} alt="Folio3" className="h-8 w-auto object-contain" /></span><span className="text-lg font-semibold tracking-tight">Vendor Onboarding</span></Link>
-        <div className="flex items-center gap-5 text-sm">
-          <div className="hidden items-center gap-4 xl:flex">
-            <Link to="/" className="font-medium hover:text-red-100">Dashboard</Link>
-            <Link to="/register" className="font-medium hover:text-red-100">New Request</Link>
-            <Link to="/requests" className="font-medium hover:text-red-100">My Requests</Link>
-            <Link to="/questionnaires/send" className="font-medium hover:text-red-100">Questionnaires</Link>
-            {canReviewQuestionnaires && <Link to="/questionnaires/review" className="font-medium hover:text-red-100">Review Questionnaires</Link>}
+    <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#0B1C35]/95 px-5 py-3 text-white shadow-[0_12px_35px_rgba(8,20,37,0.22)] backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center gap-6">
+        <div className="flex shrink-0 items-center gap-5">
+          <Link to="/" className="flex items-center gap-3 whitespace-nowrap">
+            <span className="relative h-12 w-24 overflow-hidden"><img src={folio3Logo} alt="Folio3" className="absolute left-0 top-1/2 h-24 w-24 -translate-y-1/2 object-contain" /></span>
+            <span className="text-xl font-extrabold tracking-tight">Vendor Onboarding</span>
+          </Link>
+          <div className="hidden items-center gap-3 border-l border-white/30 pl-5 md:flex">
+            <span className="grid size-10 place-items-center rounded-full bg-[#E8272C] font-bold text-white shadow-sm">{user?.name?.charAt(0)}</span>
+            <span className="leading-tight"><strong className="block whitespace-nowrap text-sm">{user?.name}</strong><span className="mt-1 block w-fit rounded-full bg-white/15 px-2 py-0.5 text-xs font-semibold text-red-50">{user?.role}</span></span>
           </div>
-          <span className="hidden text-right text-xs leading-tight sm:block"><strong className="block text-sm">{user?.name}</strong>{user?.role}</span>
-          <button type="button" onClick={handleLogout} className="rounded-lg border border-white/70 px-3 py-1.5 font-semibold hover:bg-white hover:text-[#E8272C]">Log Out</button>
+        </div>
+        <div className="ml-auto flex items-center gap-5">
+          <div className="hidden items-center gap-5 whitespace-nowrap text-sm lg:flex">
+            <Link to="/" className="font-bold hover:text-red-100">Dashboard</Link>
+            {canReviewVendors && <Link to="/requests" className="font-bold hover:text-red-100">Vendor Requests</Link>}
+          </div>
+          <button type="button" onClick={handleLogout} className="shrink-0 rounded-lg border border-[#E8272C]/70 bg-[#E8272C] px-4 py-2 text-sm font-bold shadow-lg shadow-red-950/20 hover:bg-[#C31D22]">Log Out</button>
         </div>
       </div>
     </nav>

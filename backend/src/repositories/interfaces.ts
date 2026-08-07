@@ -2,10 +2,15 @@ import type { AppUser, Reason, Vendor, VendorRequest, VendorRequestStatus } from
 
 export type NewVendorRequest = Omit<VendorRequest, 'id'>
 export type VendorRequestPatch = Partial<Omit<VendorRequest, 'id'>>
-export type NewVendor = Omit<Vendor, 'id'>
+export type NewVendor = Omit<Vendor, 'id'> & { contactPerson: string }
+export type NewAttachment = { fileName: string; mimeType: string; content: Buffer }
+export type StoredAttachment = { id: string; fileName: string; mimeType: string }
+export type AttachmentFile = StoredAttachment & { content: Buffer }
 
 export interface IRequestRepository {
   create(data: NewVendorRequest): Promise<VendorRequest>
+  delete(id: string): Promise<void>
+  findAll(): Promise<VendorRequest[]>
   findById(id: string): Promise<VendorRequest | null>
   update(id: string, patch: VendorRequestPatch): Promise<VendorRequest | null>
   findByRequester(requesterId: string): Promise<VendorRequest[]>
@@ -25,4 +30,11 @@ export interface ILookupRepository {
 
 export interface IVendorRepository {
   create(vendor: NewVendor): Promise<Vendor>
+}
+
+export interface IAttachmentRepository {
+  uploadForRequest(requestId: string, attachments: NewAttachment[]): Promise<StoredAttachment[]>
+  listForRequest(requestId: string): Promise<StoredAttachment[]>
+  getForRequest(requestId: string, attachmentId: string): Promise<AttachmentFile | null>
+  deleteAttachments(attachmentIds: string[]): Promise<void>
 }

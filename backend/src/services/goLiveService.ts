@@ -19,6 +19,7 @@ export class GoLiveService {
       companyName: request.vendorName,
       email: request.contactEmail,
       address: request.vendorAddress,
+      contactPerson: request.contactPerson,
     })
     const updatedRequest = await repositories.requests.update(id, {
       createdVendorId: vendor.id,

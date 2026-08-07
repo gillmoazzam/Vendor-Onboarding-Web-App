@@ -1,6 +1,6 @@
 import { ArrowRight, LockKeyhole, Mail, ShieldCheck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import folio3Logo from '../assets/folio3-logo.png'
 import loginHero from '../assets/vendor-onboarding-login-hero.png'
 import { useAuth } from '../contexts/AuthContext'
@@ -8,12 +8,17 @@ import { useAuth } from '../contexts/AuthContext'
 export function LoginPage() {
   const { isAuthenticated, login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const requestedPath = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from
+  const destination = requestedPath?.pathname?.startsWith('/') && !requestedPath.pathname.startsWith('//')
+    ? `${requestedPath.pathname}${requestedPath.search ?? ''}`
+    : '/'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  if (isAuthenticated) return <Navigate to="/" replace />
+  if (isAuthenticated) return <Navigate to={destination} replace />
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -22,7 +27,7 @@ export function LoginPage() {
 
     try {
       await login(email, password)
-      navigate('/')
+      navigate(destination, { replace: true })
     } catch {
       setError('Invalid email or password')
     } finally {

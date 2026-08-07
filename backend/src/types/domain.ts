@@ -41,6 +41,7 @@ export type VendorRequest = {
   questionnaireSentDate: string | null
   questionnaireSubmittedDate: string | null
   questionnaireApprovedBy: string | null
+  vendorComments: string
   answers: QuestionnaireAnswers
 }
 
