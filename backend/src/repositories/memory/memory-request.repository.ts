@@ -18,6 +18,14 @@ export class MemoryRequestRepository implements IRequestRepository {
     return request
   }
 
+  async delete(id: string): Promise<void> {
+    this.requests.delete(id)
+  }
+
+  async findAll(): Promise<VendorRequest[]> {
+    return this.filter(() => true)
+  }
+
   async findById(id: string): Promise<VendorRequest | null> {
     return this.requests.get(id) ?? null
   }

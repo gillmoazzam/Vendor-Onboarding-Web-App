@@ -15,10 +15,11 @@ export const NETSUITE_QUESTIONNAIRE_STATUS_IDS = {
 } as const
 
 export const NETSUITE_REASON_IDS = {
-  outsideIndustryVendor: '1',
-  uniqueProductNotOffered: '2',
-  clientVendorRequirement: '3',
+  provideServices: '1',
+  strategicBusinessPartner: '2',
+  supplyProducts: '3',
   other: '4',
+  businessOpportunity: '5',
 } as const
 
 const statusToId: Record<VendorRequestStatus, string> = {
@@ -36,10 +37,11 @@ const questionnaireStatusToId: Record<QuestionnaireStatus, string> = {
 }
 
 const reasonLabelToId: Record<string, string> = {
-  'Outside Industry Vendor': NETSUITE_REASON_IDS.outsideIndustryVendor,
-  'Unique Product Not Offered in Industry Today': NETSUITE_REASON_IDS.uniqueProductNotOffered,
-  'Client Vendor Requirement': NETSUITE_REASON_IDS.clientVendorRequirement,
+  'Provide Services': NETSUITE_REASON_IDS.provideServices,
+  'Become a Strategic Business Partner': NETSUITE_REASON_IDS.strategicBusinessPartner,
+  'Supply Products': NETSUITE_REASON_IDS.supplyProducts,
   Other: NETSUITE_REASON_IDS.other,
+  'Responding to a Business Opportunity': NETSUITE_REASON_IDS.businessOpportunity,
 }
 
 function reverseMap<T extends string>(map: Record<T, string>): Record<string, T> {

@@ -33,6 +33,7 @@ const fields = {
   questionnaireSentDate: 'custrecord_f3_qn_sent_date',
   questionnaireSubmittedDate: 'custrecord_f3_qn_submitted_date',
   questionnaireApprovedBy: 'custrecord_f3_qn_approved_by',
+  vendorComments: 'custrecord_f3_vendorcomments',
   q1: 'custrecord_f3_q1',
   q2: 'custrecord_f3_q2',
   q3: 'custrecord_f3_q3',
@@ -65,6 +66,7 @@ const selectRequest = `
     ${fields.questionnaireSentDate} AS "questionnaireSentDate",
     ${fields.questionnaireSubmittedDate} AS "questionnaireSubmittedDate",
     ${fields.questionnaireApprovedBy} AS "questionnaireApprovedBy",
+    ${fields.vendorComments} AS "vendorComments",
     ${fields.q1} AS "q1",
     ${fields.q2} AS "q2",
     ${fields.q3} AS "q3",
@@ -91,45 +93,56 @@ function nullableText(value: unknown): string | null {
   return value == null || value === '' ? null : String(value)
 }
 
+function rowValue(row: Record<string, unknown>, key: string): unknown {
+  return row[key] ?? row[key.toLowerCase()]
+}
+
 function mapRequest(row: Record<string, unknown>): VendorRequest {
-  const reason = fromNetSuiteReasonId(text(row.reasonId))
+  const reason = fromNetSuiteReasonId(text(rowValue(row, 'reasonId')))
 
   return {
-    id: text(row.id),
-    vendorName: text(row.vendorName),
-    vendorAddress: text(row.vendorAddress),
-    contactPerson: text(row.contactPerson),
-    contactEmail: text(row.contactEmail),
+    id: text(rowValue(row, 'id')),
+    vendorName: text(rowValue(row, 'vendorName')),
+    vendorAddress: text(rowValue(row, 'vendorAddress')),
+    contactPerson: text(rowValue(row, 'contactPerson')),
+    contactEmail: text(rowValue(row, 'contactEmail')),
     reasonId: reason.id,
     reasonLabel: reason.label,
-    reasonOther: text(row.reasonOther),
-    requesterId: text(row.requesterId),
-    requesterName: text(row.requesterName),
-    requesterEmail: text(row.requesterEmail),
-    requestDate: text(row.requestDate),
-    status: fromNetSuiteStatusId(text(row.statusId)),
-    approverComments: text(row.approverComments),
-    approvalDate: nullableText(row.approvalDate),
-    approvalToken: nullableText(row.approvalToken),
-    createdVendorId: nullableText(row.createdVendorId),
-    questionnaireStatus: fromNetSuiteQuestionnaireStatusId(text(row.questionnaireStatusId)),
-    questionnaireToken: nullableText(row.questionnaireToken),
-    questionnaireSentDate: nullableText(row.questionnaireSentDate),
-    questionnaireSubmittedDate: nullableText(row.questionnaireSubmittedDate),
-    questionnaireApprovedBy: nullableText(row.questionnaireApprovedBy),
-    answers: { q1: text(row.q1), q2: text(row.q2), q3: text(row.q3), q4: text(row.q4), q5: text(row.q5) },
+    reasonOther: text(rowValue(row, 'reasonOther')),
+    requesterId: text(rowValue(row, 'requesterId')),
+    requesterName: text(rowValue(row, 'requesterName')),
+    requesterEmail: text(rowValue(row, 'requesterEmail')),
+    requestDate: text(rowValue(row, 'requestDate')),
+    status: fromNetSuiteStatusId(text(rowValue(row, 'statusId'))),
+    approverComments: text(rowValue(row, 'approverComments')),
+    approvalDate: nullableText(rowValue(row, 'approvalDate')),
+    approvalToken: nullableText(rowValue(row, 'approvalToken')),
+    createdVendorId: nullableText(rowValue(row, 'createdVendorId')),
+    questionnaireStatus: fromNetSuiteQuestionnaireStatusId(text(rowValue(row, 'questionnaireStatusId'))),
+    questionnaireToken: nullableText(rowValue(row, 'questionnaireToken')),
+    questionnaireSentDate: nullableText(rowValue(row, 'questionnaireSentDate')),
+    questionnaireSubmittedDate: nullableText(rowValue(row, 'questionnaireSubmittedDate')),
+    questionnaireApprovedBy: nullableText(rowValue(row, 'questionnaireApprovedBy')),
+    vendorComments: text(rowValue(row, 'vendorComments')),
+    answers: {
+      q1: text(rowValue(row, 'q1')),
+      q2: text(rowValue(row, 'q2')),
+      q3: text(rowValue(row, 'q3')),
+      q4: text(rowValue(row, 'q4')),
+      q5: text(rowValue(row, 'q5')),
+    },
   }
 }
 
 function toNetSuiteRequest(data: NewVendorRequest): Record<string, unknown> {
-  return {
+  const body: Record<string, unknown> = {
+    name: data.vendorName,
     [fields.vendorName]: data.vendorName,
     [fields.vendorAddress]: data.vendorAddress,
     [fields.contactPerson]: data.contactPerson,
     [fields.contactEmail]: data.contactEmail,
     [fields.reason]: { id: toNetSuiteReasonId(data.reasonId) },
     [fields.reasonOther]: data.reasonOther,
-    [fields.requester]: { id: data.requesterId },
     [fields.requesterEmail]: data.requesterEmail,
     [fields.requestDate]: toDate(data.requestDate),
     [fields.status]: { id: toNetSuiteStatusId(data.status) },
@@ -140,14 +153,18 @@ function toNetSuiteRequest(data: NewVendorRequest): Record<string, unknown> {
     [fields.questionnaireStatus]: { id: toNetSuiteQuestionnaireStatusId(data.questionnaireStatus) },
     [fields.questionnaireToken]: data.questionnaireToken,
     [fields.questionnaireSentDate]: toDate(data.questionnaireSentDate),
-    [fields.questionnaireSubmittedDate]: toDate(data.questionnaireSubmittedDate),
+    [fields.questionnaireSubmittedDate]: data.questionnaireSubmittedDate,
     [fields.questionnaireApprovedBy]: data.questionnaireApprovedBy ? { id: data.questionnaireApprovedBy } : null,
+    [fields.vendorComments]: data.vendorComments,
     [fields.q1]: data.answers.q1,
     [fields.q2]: data.answers.q2,
     [fields.q3]: data.answers.q3,
     [fields.q4]: data.answers.q4,
     [fields.q5]: data.answers.q5,
   }
+
+  if (data.requesterId) body[fields.requester] = { id: data.requesterId }
+  return body
 }
 
 function toNetSuitePatch(patch: VendorRequestPatch): Record<string, unknown> {
@@ -156,6 +173,7 @@ function toNetSuitePatch(patch: VendorRequestPatch): Record<string, unknown> {
     ['vendorName', fields.vendorName], ['vendorAddress', fields.vendorAddress], ['contactPerson', fields.contactPerson],
     ['contactEmail', fields.contactEmail], ['reasonOther', fields.reasonOther], ['requesterEmail', fields.requesterEmail],
     ['approverComments', fields.approverComments], ['approvalToken', fields.approvalToken], ['questionnaireToken', fields.questionnaireToken],
+    ['vendorComments', fields.vendorComments],
   ]
 
   for (const [domainField, netSuiteField] of simpleFields) {
@@ -169,7 +187,7 @@ function toNetSuitePatch(patch: VendorRequestPatch): Record<string, unknown> {
   if ('createdVendorId' in patch) body[fields.createdVendorId] = patch.createdVendorId ? { id: patch.createdVendorId } : null
   if ('questionnaireApprovedBy' in patch) body[fields.questionnaireApprovedBy] = patch.questionnaireApprovedBy ? { id: patch.questionnaireApprovedBy } : null
   if ('requestDate' in patch) body[fields.requestDate] = toDate(patch.requestDate ?? null)
-  if ('approvalDate' in patch) body[fields.approvalDate] = toDate(patch.approvalDate ?? null)
+  if ('approvalDate' in patch) body[fields.approvalDate] = patch.approvalDate ?? null
   if ('questionnaireSentDate' in patch) body[fields.questionnaireSentDate] = toDate(patch.questionnaireSentDate ?? null)
   if ('questionnaireSubmittedDate' in patch) body[fields.questionnaireSubmittedDate] = toDate(patch.questionnaireSubmittedDate ?? null)
   if (patch.answers) {
@@ -186,10 +204,15 @@ function toNetSuitePatch(patch: VendorRequestPatch): Record<string, unknown> {
 export class NetSuiteRequestRepository implements IRequestRepository {
   async create(data: NewVendorRequest): Promise<VendorRequest> {
     const id = await createNetSuiteRecord(`/record/v1/${recordType}`, toNetSuiteRequest(data))
-    const request = await this.findById(id)
-    if (!request) throw new Error(`NetSuite created vendor request ${id}, but it could not be read`)
+    return { ...data, id }
+  }
 
-    return request
+  async delete(id: string): Promise<void> {
+    await netsuiteClient.delete(`/record/v1/${recordType}/${encodeURIComponent(id)}`)
+  }
+
+  async findAll(): Promise<VendorRequest[]> {
+    return this.find('1 = 1', `${fields.requestDate} DESC`)
   }
 
   async findById(id: string): Promise<VendorRequest | null> {

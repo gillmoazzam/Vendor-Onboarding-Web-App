@@ -9,7 +9,7 @@ const selectUser = `
     id AS "id",
     entityid AS "name",
     email AS "email",
-    custentity_f3_app_role AS "role",
+    BUILTIN.DF(custentity_f3_app_role) AS "role",
     custentity_f3_app_password AS "password"
   FROM employee
 `

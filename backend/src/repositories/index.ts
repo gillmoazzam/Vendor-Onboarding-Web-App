@@ -1,10 +1,12 @@
-import type { ILookupRepository, IRequestRepository, IUserRepository, IVendorRepository } from './interfaces.js'
+import type { IAttachmentRepository, ILookupRepository, IRequestRepository, IUserRepository, IVendorRepository } from './interfaces.js'
+import { MemoryAttachmentRepository } from './memory/memory-attachment.repository.js'
 import { MemoryLookupRepository } from './memory/memory-lookup.repository.js'
 import { MemoryRequestRepository } from './memory/memory-request.repository.js'
 import { MemoryUserRepository } from './memory/memory-user.repository.js'
 import { MemoryVendorRepository } from './memory/memory-vendor.repository.js'
 import { reasons, requests, users } from './memory/seed.js'
 import { NetSuiteLookupRepository } from './netsuite/netsuite-lookup.repository.js'
+import { NetSuiteAttachmentRepository } from './netsuite/netsuite-attachment.repository.js'
 import { NetSuiteRequestRepository } from './netsuite/netsuite-request.repository.js'
 import { NetSuiteUserRepository } from './netsuite/netsuite-user.repository.js'
 import { NetSuiteVendorRepository } from './netsuite/netsuite-vendor.repository.js'
@@ -14,6 +16,7 @@ export type Repositories = {
   users: IUserRepository
   lookups: ILookupRepository
   vendors: IVendorRepository
+  attachments: IAttachmentRepository
 }
 
 function createMemoryRepositories(): Repositories {
@@ -22,6 +25,7 @@ function createMemoryRepositories(): Repositories {
     users: new MemoryUserRepository(users),
     lookups: new MemoryLookupRepository(reasons),
     vendors: new MemoryVendorRepository(),
+    attachments: new MemoryAttachmentRepository(),
   }
 }
 
@@ -31,6 +35,7 @@ function createNetSuiteRepositories(): Repositories {
     users: new NetSuiteUserRepository(),
     lookups: new NetSuiteLookupRepository(),
     vendors: new NetSuiteVendorRepository(),
+    attachments: new NetSuiteAttachmentRepository(),
   }
 }
 

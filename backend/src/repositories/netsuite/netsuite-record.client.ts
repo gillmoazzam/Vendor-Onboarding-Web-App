@@ -17,6 +17,7 @@ export async function createNetSuiteRecord(path: string, body: unknown): Promise
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(30_000),
   })
   const responseBody = await response.text()
 
@@ -33,4 +34,22 @@ export async function createNetSuiteRecord(path: string, body: unknown): Promise
   if (!recordId) throw new Error(`NetSuite POST ${path} returned an invalid Location header`)
 
   return decodeURIComponent(recordId)
+}
+
+export async function deleteNetSuiteRecord(path: string): Promise<void> {
+  const requestUrl = `${getBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`
+  const response = await fetch(requestUrl, {
+    method: 'DELETE',
+    headers: {
+      Authorization: netsuiteAuth.getAuthorizationHeader('DELETE', requestUrl),
+      Accept: 'application/json',
+    },
+    signal: AbortSignal.timeout(30_000),
+  })
+  const responseBody = await response.text()
+
+  if (!response.ok) {
+    console.error(`NetSuite DELETE ${path} failed:`, responseBody)
+    throw new Error(`NetSuite DELETE ${path} failed (${response.status}): ${responseBody}`)
+  }
 }

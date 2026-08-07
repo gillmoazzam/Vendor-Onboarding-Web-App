@@ -1,6 +1,6 @@
 import { netsuiteAuth } from './netsuiteAuth.js'
 
-type RequestMethod = 'GET' | 'POST' | 'PATCH'
+type RequestMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 
 function getBaseUrl(): string {
   const accountId = process.env.NS_ACCOUNT_ID?.trim().toLowerCase()
@@ -10,6 +10,8 @@ function getBaseUrl(): string {
 }
 
 export class NetSuiteClient {
+  private requestQueue: Promise<void> = Promise.resolve()
+
   async verifyConnection(): Promise<void> {
     await this.suiteql<unknown>('SELECT 1 AS healthCheck FROM DUAL')
   }
@@ -26,11 +28,21 @@ export class NetSuiteClient {
     return this.request<T>('PATCH', path, body)
   }
 
+  async delete(path: string): Promise<void> {
+    await this.request<void>('DELETE', path)
+  }
+
   async suiteql<T>(query: string): Promise<T> {
     return this.request<T>('POST', '/query/v1/suiteql', { q: query }, { Prefer: 'transient' })
   }
 
   private async request<T>(method: RequestMethod, path: string, body?: unknown, headers: Record<string, string> = {}): Promise<T> {
+    const operation = this.requestQueue.then(() => this.executeRequest<T>(method, path, body, headers))
+    this.requestQueue = operation.then(() => undefined, () => undefined)
+    return operation
+  }
+
+  private async executeRequest<T>(method: RequestMethod, path: string, body?: unknown, headers: Record<string, string> = {}): Promise<T> {
     const requestUrl = `${getBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`
     const response = await fetch(requestUrl, {
       method,
@@ -41,6 +53,7 @@ export class NetSuiteClient {
         ...headers,
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      signal: AbortSignal.timeout(30_000),
     })
 
     const responseBody = await response.text()
