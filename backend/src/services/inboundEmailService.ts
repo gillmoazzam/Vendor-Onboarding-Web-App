@@ -17,14 +17,26 @@ export class InboundEmailService {
   private timer: NodeJS.Timeout | null = null
   private isPolling = false
 
-  start(): void {
-    if (process.env.INBOUND_EMAIL_ENABLED?.trim().toLowerCase() !== 'true') return
+  start(options: { keepAlive?: boolean } = {}): boolean {
+    if (process.env.INBOUND_EMAIL_ENABLED?.trim().toLowerCase() !== 'true') return false
+    if (this.timer) return true
     const interval = Number(process.env.INBOUND_EMAIL_POLL_MS ?? 60_000)
     if (!Number.isInteger(interval) || interval < 15_000) throw new Error('INBOUND_EMAIL_POLL_MS must be at least 15000')
     console.log(`Inbound vendor reply processing enabled (poll interval: ${interval}ms)`)
     void this.poll()
     this.timer = setInterval(() => void this.poll(), interval)
-    this.timer.unref()
+    if (!options.keepAlive) this.timer.unref()
+    return true
+  }
+
+  async stop(): Promise<void> {
+    if (this.timer) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+    while (this.isPolling) {
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
   }
 
   async poll(): Promise<void> {

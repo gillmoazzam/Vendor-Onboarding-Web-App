@@ -3,8 +3,10 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "dev:email-worker": "tsx watch src/emailWorker.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "start:email-worker": "node dist/emailWorker.js"
   },
   "dependencies": {
     "@vercel/functions": "^3.9.0",
