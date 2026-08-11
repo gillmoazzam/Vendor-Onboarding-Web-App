@@ -56,22 +56,35 @@ function extractReplyText(email: ParsedMail): string {
   return (cutAt === undefined ? rawText : rawText.slice(0, cutAt)).trim()
 }
 
-function parseAttachments(email: ParsedMail): NewAttachment[] {
+function parseAttachments(email: ParsedMail): { accepted: NewAttachment[]; skipped: string[] } {
   const attachments = email.attachments.filter((attachment) => attachment.contentDisposition !== 'inline' && attachment.filename)
-  if (attachments.length > maximumAttachments) throw new VendorReplyError('Vendor reply contains more than 10 attachments', 'permanent')
+  const accepted: NewAttachment[] = []
+  const skipped: string[] = []
 
-  return attachments.map((attachment) => {
+  for (const [index, attachment] of attachments.entries()) {
     const fileName = attachment.filename!.trim()
+    if (index >= maximumAttachments) {
+      skipped.push(`${fileName} (exceeds the 10-file limit)`)
+      continue
+    }
     const extension = fileName.toLowerCase().split('.').pop() ?? ''
     const mimeType = mimeTypes[extension]
-    if (!mimeType) throw new VendorReplyError(`Unsupported vendor reply attachment: ${fileName}`, 'permanent')
-    if (attachment.content.length > maximumAttachmentSize) throw new VendorReplyError(`Vendor reply attachment exceeds 10 MB: ${fileName}`, 'permanent')
-    return { fileName, mimeType, content: attachment.content }
-  })
+    if (!mimeType) {
+      skipped.push(`${fileName} (unsupported file type)`)
+      continue
+    }
+    if (attachment.content.length > maximumAttachmentSize) {
+      skipped.push(`${fileName} (exceeds 10 MB)`)
+      continue
+    }
+    accepted.push({ fileName, mimeType, content: attachment.content })
+  }
+
+  return { accepted, skipped }
 }
 
 export class VendorReplyService {
-  async process(email: ParsedMail, fallbackMessageId: string): Promise<{ requestId: string; duplicate: boolean }> {
+  async process(email: ParsedMail, fallbackMessageId: string): Promise<{ requestId: string; duplicate: boolean; skippedAttachments: string[] }> {
     const requestId = requestIdFromEmail(email)
     if (!requestId) throw new VendorReplyError('Email does not contain a Vendor Request reference', 'ignore')
 
@@ -88,18 +101,21 @@ export class VendorReplyService {
     const notificationMarker = `Reviewer notification sent for: ${messageId}`
     let currentRequest = request
     let duplicate = request.vendorComments.includes(emailMarker)
+    let skippedAttachments: string[] = []
 
     if (!duplicate) {
       const replyText = extractReplyText(email)
       if (!replyText) throw new VendorReplyError(`Vendor reply for Request #${requestId} did not contain comments`, 'permanent')
       const attachments = parseAttachments(email)
-      const stored = attachments.length > 0 ? await repositories.attachments.uploadForRequest(requestId, attachments) : []
+      skippedAttachments = attachments.skipped
+      const stored = attachments.accepted.length > 0 ? await repositories.attachments.uploadForRequest(requestId, attachments.accepted) : []
       const entry = [
         '--- Vendor Email Reply ---',
         `Received: ${(email.date ?? new Date()).toISOString()}`,
         `From: ${sender}`,
         emailMarker,
         `Attachments: ${stored.length > 0 ? stored.map((file) => file.fileName).join(', ') : 'None'}`,
+        ...(skippedAttachments.length > 0 ? [`Skipped attachments: ${skippedAttachments.join(', ')}`] : []),
         '',
         replyText,
       ].join('\n')
@@ -128,7 +144,7 @@ export class VendorReplyService {
       currentRequest = updated
     }
 
-    return { requestId, duplicate }
+    return { requestId, duplicate, skippedAttachments }
   }
 }
 
