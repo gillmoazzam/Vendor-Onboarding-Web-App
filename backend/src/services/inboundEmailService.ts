@@ -76,6 +76,9 @@ export class InboundEmailService {
           const result = await vendorReplyService.process(parsed, fallbackMessageId)
           await client.messageFlagsAdd(message.uid, ['\\Seen', processedFlag], { uid: true })
           console.log(`Processed vendor email reply for request ${result.requestId}${result.duplicate ? ' (duplicate ignored)' : ''}`)
+          if (result.skippedAttachments.length > 0) {
+            console.warn(`Skipped unsupported vendor reply attachments for request ${result.requestId}: ${result.skippedAttachments.join(', ')}`)
+          }
         } catch (error) {
           if (error instanceof VendorReplyError && error.disposition === 'ignore') continue
           console.error(`Failed to process inbound email UID ${message.uid}:`, error)
