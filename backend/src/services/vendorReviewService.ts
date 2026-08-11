@@ -34,10 +34,12 @@ export class VendorReviewService {
     const rejectionComments = comments.trim()
     if (!rejectionComments) throw new VendorReviewError('Rejection comments are required', 400)
 
-    const updated = await repositories.requests.update(id, { status: 'Rejected', approvalDate: new Date().toISOString(), approverComments: rejectionComments })
+    const rejectionEntry = `Request rejected on ${new Date().toISOString()}: ${rejectionComments}`
+    const approverComments = request.approverComments ? `${request.approverComments}\n${rejectionEntry}` : rejectionEntry
+    const updated = await repositories.requests.update(id, { status: 'Rejected', approvalDate: new Date().toISOString(), approverComments })
     if (!updated) throw new VendorReviewError('Vendor request not found', 404)
     try {
-      await emailService.sendRejectionOutcome(updated)
+      await emailService.sendRejectionOutcome({ ...updated, approverComments: rejectionComments })
     } catch (error) {
       try {
         await repositories.requests.update(id, { status: 'Pending Approval', approvalDate: null, approverComments: request.approverComments })
