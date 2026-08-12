@@ -6,7 +6,12 @@ export class MemoryVendorRepository implements IVendorRepository {
   private nextId = 1
 
   async create(vendor: NewVendor): Promise<Vendor> {
-    const createdVendor = { ...vendor, id: String(this.nextId++) }
+    const createdVendor: Vendor = {
+      id: String(this.nextId++),
+      companyName: vendor.companyName,
+      email: vendor.email,
+      address: vendor.address,
+    }
     this.vendors.set(createdVendor.id, createdVendor)
     return createdVendor
   }

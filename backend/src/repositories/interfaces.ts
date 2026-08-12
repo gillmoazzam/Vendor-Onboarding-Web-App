@@ -2,7 +2,7 @@ import type { AppUser, Reason, Vendor, VendorRequest } from '../types/domain.js'
 
 export type NewVendorRequest = Omit<VendorRequest, 'id'>
 export type VendorRequestPatch = Partial<Omit<VendorRequest, 'id'>>
-export type NewVendor = Omit<Vendor, 'id'> & { contactPerson: string }
+export type NewVendor = Omit<Vendor, 'id'> & { contactPerson: string; sourceRequestId: string }
 export type NewAttachment = { fileName: string; mimeType: string; content: Buffer }
 export type StoredAttachment = { id: string; fileName: string; mimeType: string }
 export type AttachmentFile = StoredAttachment & { content: Buffer }
