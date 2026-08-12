@@ -21,6 +21,7 @@ export class VendorReviewService {
         email: request.contactEmail,
         address: request.vendorAddress,
         contactPerson: request.contactPerson,
+        sourceRequestId: request.id,
       })
       const updated = await repositories.requests.update(id, {
         status: 'Processed',
