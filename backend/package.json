@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "dev:email-worker": "tsx watch src/emailWorker.ts",
-    "build": "tsc",
+    "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",
     "start:email-worker": "node dist/emailWorker.js"
   },
