@@ -1,6 +1,8 @@
 /// <reference path="./types/express.d.ts" />
 
-import 'dotenv/config'
+if (!process.env.VERCEL) {
+  require('dotenv/config')
+}
 import cors from 'cors'
 import express from 'express'
 import { requireAuth } from './middleware/requireAuth.js'
