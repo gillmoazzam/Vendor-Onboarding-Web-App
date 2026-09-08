@@ -4,6 +4,10 @@ import { deleteNetSuiteFile, getNetSuiteFile, uploadNetSuiteFile, type NetSuiteF
 
 const recordType = 'customrecord_f3_vendor_onboarding'
 
+function nativeCustomRecordAttachmentEnabled(): boolean {
+  return process.env.NS_ATTACH_FILES_TO_CUSTOM_RECORD?.trim().toLowerCase() === 'true'
+}
+
 function requiredEnvironment(name: string): string {
   const value = process.env[name]?.trim()
   if (!value) throw new Error(`${name} is required for the NetSuite connection`)
@@ -43,13 +47,16 @@ export class NetSuiteAttachmentRepository implements IAttachmentRepository {
   async uploadForRequest(requestId: string, attachments: NewAttachment[]): Promise<StoredAttachment[]> {
     const folderId = requiredEnvironment('NS_VENDOR_ATTACHMENT_FOLDER')
     const stored: StoredAttachment[] = []
+    const attachToCustomRecord = nativeCustomRecordAttachmentEnabled()
 
     try {
       for (const attachment of attachments) {
         const fileName = safeFileName(requestId, attachment.fileName)
         const id = await uploadNetSuiteFile({ fileName, fileType: getFileType(attachment.fileName), folderId, content: attachment.content })
         stored.push({ id, fileName, mimeType: attachment.mimeType })
-        await netsuiteClient.post(`/record/v1/${recordType}/${encodeURIComponent(requestId)}/!attach/file/${encodeURIComponent(id)}`, {})
+        if (attachToCustomRecord) {
+          await netsuiteClient.post(`/record/v1/${recordType}/${encodeURIComponent(requestId)}/!attach/file/${encodeURIComponent(id)}`, {})
+        }
       }
     } catch (error) {
       const cleanupResults = await Promise.allSettled(stored.map((file) => deleteNetSuiteFile(file.id)))
@@ -57,6 +64,10 @@ export class NetSuiteAttachmentRepository implements IAttachmentRepository {
         if (result.status === 'rejected') console.error('Failed to clean up a NetSuite file after attachment failure:', result.reason)
       }
       throw error
+    }
+
+    if (!attachToCustomRecord && stored.length > 0) {
+      console.info(`Stored ${stored.length} file(s) for Vendor Request #${requestId} in the configured File Cabinet folder`)
     }
 
     return stored
