@@ -31,17 +31,25 @@ test('builds an account-specific RESTlet URL', () => {
   )
 })
 
-test('does not call NetSuite until the RESTlet is configured', async () => {
+test('uses the deployed RESTlet IDs when environment overrides are absent', async () => {
   delete process.env.NS_ATTACHMENT_RESTLET_SCRIPT_ID
   delete process.env.NS_ATTACHMENT_RESTLET_DEPLOY_ID
-  let requested = false
-  const client = new NetSuiteAttachmentRestletClient(async () => {
-    requested = true
-    return new Response()
+  process.env.NS_ACCOUNT_ID = '1234567_SB1'
+  let requestedUrl = ''
+  const client = new NetSuiteAttachmentRestletClient(async (url) => {
+    requestedUrl = String(url)
+    return new Response(JSON.stringify({
+      success: true,
+      requestId: '1601',
+      attachedFileIds: ['5001'],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } })
   }, { getAuthorizationHeader: () => 'OAuth test' })
 
-  assert.equal(await client.attachFiles('1601', ['5001']), false)
-  assert.equal(requested, false)
+  assert.equal(await client.attachFiles('1601', ['5001']), true)
+  assert.equal(
+    requestedUrl,
+    'https://1234567-sb1.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=customscript_f3_vendor_attachment_rl&deploy=customdeploy_f3_vendor_attachment_rl',
+  )
 })
 
 test('attaches every uploaded file through the configured RESTlet', async () => {

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, CheckCircle2, Download, FileText, MessageSquareText, XCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Download, FileText, MessageSquareText, RefreshCw, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -7,6 +7,7 @@ import { ApiErrorCard } from '../components/ApiErrorCard'
 import { Badge } from '../components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { questions } from '../config/questions'
+import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/api'
 
 type RequestStatus = 'Pending Approval' | 'Approved' | 'Rejected' | 'Processed'
@@ -51,6 +52,7 @@ function Detail({ label, value }: { label: string; value: string }) {
 
 export function RequestDetailsPage() {
   const { id = '' } = useParams()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [showFurtherDetails, setShowFurtherDetails] = useState(false)
   const [decisionToConfirm, setDecisionToConfirm] = useState<'approve' | 'reject' | null>(null)
@@ -81,6 +83,11 @@ export function RequestDetailsPage() {
       void queryClient.invalidateQueries({ queryKey: ['request', id] })
     },
     onError: () => toast.error('Unable to send the email. Please try again.'),
+  })
+  const attachmentSyncMutation = useMutation({
+    mutationFn: async () => (await api.post<{ attachedFileIds: string[] }>(`/requests/${id}/attachments/sync`)).data,
+    onSuccess: (data) => toast.success(`${data.attachedFileIds.length} attachment(s) synchronized to the NetSuite Files tab`),
+    onError: () => toast.error('Unable to synchronize attachments to NetSuite. Check the RESTlet deployment and execution log.'),
   })
 
   async function downloadAttachment(attachment: Attachment) {
@@ -129,7 +136,7 @@ export function RequestDetailsPage() {
 
     <Card><CardHeader><CardTitle>Due-Diligence Questionnaire</CardTitle></CardHeader><CardContent className="space-y-4">{questions.map((question) => <div key={question.id} className="rounded-xl border border-slate-200 p-5"><p className="font-bold leading-6 text-[#1F3864]"><span className="mr-2 text-[#E8272C]">{question.id}</span>{question.label}</p><p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-700">{request.answers[question.key] || 'No answer provided'}</p></div>)}</CardContent></Card>
 
-    <Card><CardHeader><CardTitle>Supporting Documents</CardTitle></CardHeader><CardContent>{attachmentsQuery.isLoading ? <div className="space-y-3">{Array.from({ length: 2 }, (_, index) => <div key={index} className="h-14 animate-pulse rounded-xl bg-slate-100" />)}</div> : attachmentsQuery.isError ? <ApiErrorCard message="We could not load the supporting documents." /> : attachmentsQuery.data?.length ? <ul className="space-y-3">{attachmentsQuery.data.map((attachment) => <li key={attachment.id} className="flex items-center gap-3 rounded-xl border border-slate-200 p-4"><FileText className="size-5 shrink-0 text-[#E8272C]" /><span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-700">{attachment.fileName}</span><button type="button" onClick={() => void downloadAttachment(attachment)} className="inline-flex items-center gap-2 rounded-lg bg-[#1F3864] px-3 py-2 text-sm font-bold text-white hover:bg-[#162A4D]"><Download className="size-4" />Download</button></li>)}</ul> : <div className="py-8 text-center text-sm text-slate-500"><FileText className="mx-auto mb-3 size-8 text-slate-300" />No supporting documents were submitted.</div>}</CardContent></Card>
+    <Card><CardHeader><CardTitle>Supporting Documents</CardTitle></CardHeader><CardContent>{attachmentsQuery.isLoading ? <div className="space-y-3">{Array.from({ length: 2 }, (_, index) => <div key={index} className="h-14 animate-pulse rounded-xl bg-slate-100" />)}</div> : attachmentsQuery.isError ? <ApiErrorCard message="We could not load the supporting documents." /> : attachmentsQuery.data?.length ? <><ul className="space-y-3">{attachmentsQuery.data.map((attachment) => <li key={attachment.id} className="flex items-center gap-3 rounded-xl border border-slate-200 p-4"><FileText className="size-5 shrink-0 text-[#E8272C]" /><span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-700">{attachment.fileName}</span><button type="button" onClick={() => void downloadAttachment(attachment)} className="inline-flex items-center gap-2 rounded-lg bg-[#1F3864] px-3 py-2 text-sm font-bold text-white hover:bg-[#162A4D]"><Download className="size-4" />Download</button></li>)}</ul>{user?.role === 'Administrator' && <button type="button" disabled={attachmentSyncMutation.isPending} onClick={() => attachmentSyncMutation.mutate()} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-[#1F3864] px-4 py-2.5 text-sm font-bold text-[#1F3864] hover:bg-slate-50 disabled:opacity-60"><RefreshCw className={`size-4 ${attachmentSyncMutation.isPending ? 'animate-spin' : ''}`} />{attachmentSyncMutation.isPending ? 'Synchronizing…' : 'Sync attachments to NetSuite'}</button>}</> : <div className="py-8 text-center text-sm text-slate-500"><FileText className="mx-auto mb-3 size-8 text-slate-300" />No supporting documents were submitted.</div>}</CardContent></Card>
 
     {request.approverComments && <Card><CardHeader><CardTitle>Review History</CardTitle></CardHeader><CardContent><p className="whitespace-pre-wrap rounded-xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">{request.approverComments}</p></CardContent></Card>}
 

@@ -1,6 +1,10 @@
 import { netsuiteAuth } from './netsuiteAuth.js'
 
 const maximumAttempts = 4
+const defaultConfiguration: RestletConfiguration = {
+  scriptId: 'customscript_f3_vendor_attachment_rl',
+  deploymentId: 'customdeploy_f3_vendor_attachment_rl',
+}
 
 type RestletConfiguration = {
   scriptId: string
@@ -36,11 +40,11 @@ function numericId(value: string, name: string): string {
   return normalized
 }
 
-function getConfiguration(): RestletConfiguration | null {
+function getConfiguration(): RestletConfiguration {
   const scriptId = process.env.NS_ATTACHMENT_RESTLET_SCRIPT_ID?.trim() ?? ''
   const deploymentId = process.env.NS_ATTACHMENT_RESTLET_DEPLOY_ID?.trim() ?? ''
 
-  if (!scriptId && !deploymentId) return null
+  if (!scriptId && !deploymentId) return defaultConfiguration
   if (!scriptId || !deploymentId) {
     throw new Error('NS_ATTACHMENT_RESTLET_SCRIPT_ID and NS_ATTACHMENT_RESTLET_DEPLOY_ID must be configured together')
   }
@@ -68,7 +72,6 @@ export class NetSuiteAttachmentRestletClient {
     if (fileIds.length === 0) return true
 
     const configuration = getConfiguration()
-    if (!configuration) return false
 
     const normalizedRequestId = numericId(requestId, 'Vendor Request ID')
     const normalizedFileIds = [...new Set(fileIds.map((fileId) => numericId(fileId, 'File ID')))]
