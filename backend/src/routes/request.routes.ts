@@ -7,7 +7,7 @@ export const requestRouter = Router()
 
 requestRouter.get('/', requireRole('Finance Manager', 'Administrator'), getRequests)
 requestRouter.get('/:id/attachments', requireRole('Finance Manager', 'Administrator'), getRequestAttachments)
-requestRouter.post('/:id/attachments/sync', requireRole('Administrator'), syncRequestAttachments)
+requestRouter.post('/:id/attachments/sync', requireRole('Finance Manager', 'Administrator'), syncRequestAttachments)
 requestRouter.get('/:id/attachments/:fileId', requireRole('Finance Manager', 'Administrator'), downloadRequestAttachment)
 requestRouter.post('/:id/decision', requireRole('Finance Manager', 'Administrator'), submitInternalDecision)
 requestRouter.post('/:id/further-details', requireRole('Finance Manager', 'Administrator'), requestFurtherDetails)
