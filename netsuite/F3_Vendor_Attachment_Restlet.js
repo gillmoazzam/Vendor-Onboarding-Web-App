@@ -67,7 +67,7 @@ define(['N/error', 'N/file', 'N/log', 'N/record'], function (error, file, log, r
       file.load({ id: fileId });
       try {
         record.attach({
-          record: { type: record.Type.FILE, id: fileId },
+          record: { type: 'file', id: fileId },
           to: { type: REQUEST_RECORD_TYPE, id: requestId }
         });
       } catch (exception) {

@@ -50,16 +50,18 @@ export class NetSuiteAttachmentRepository implements IAttachmentRepository {
         stored.push({ id, fileName, mimeType: attachment.mimeType })
       }
 
-      const attached = await netsuiteAttachmentRestlet.attachFiles(requestId, stored.map((file) => file.id))
-      if (!attached) {
-        console.warn(`Stored ${stored.length} file(s) for Vendor Request #${requestId}, but the NetSuite attachment RESTlet is not configured`)
-      }
     } catch (error) {
       const cleanupResults = await Promise.allSettled(stored.map((file) => deleteNetSuiteFile(file.id)))
       for (const result of cleanupResults) {
         if (result.status === 'rejected') console.error('Failed to clean up a NetSuite file after attachment failure:', result.reason)
       }
       throw error
+    }
+
+    try {
+      await netsuiteAttachmentRestlet.attachFiles(requestId, stored.map((file) => file.id))
+    } catch (error) {
+      console.error(`Stored ${stored.length} file(s) for Vendor Request #${requestId}, but native NetSuite attachment synchronization failed:`, error)
     }
 
     return stored
